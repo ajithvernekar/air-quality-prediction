@@ -1,0 +1,436 @@
+---
+title: "Regression Algorithm"
+author: "Ajith Vernekar"
+date: "2023-03-31"
+output:
+  html_document:
+    self_contained: false
+    keep_md: false
+    fig_path: "../Output/Plots/Regression/"
+    toc: true
+    theme: united
+    highlight: tango  
+    toc_depth: 3
+    toc_float:
+      collapsed: true
+    number_sections: true
+    output_dir: "../Output/Html_Reports/"
+---
+
+This project demonstrates on the regression model using multiple linear regression algorithm in R. I have used air quality dataset. This dataset contains the responses of a gas multisensor device deployed on the field in an Italian city. Hourly responses averages are recorded along with gas concentrations references from a certified analyzer.
+
+# Data
+
+The dataset contains 9358 instances of hourly averaged responses from an array of 5 metal oxide chemical sensors embedded in an Air Quality Chemical Multisensor Device. The device was located on the field in a significantly polluted area, at road level,within an Italian city.
+
+You can access the dataset and its information from the following link: <https://archive.ics.uci.edu/ml/datasets/Air+Quality#>
+
+Data were recorded from March 2004 to February 2005 (one year)representing the longest freely available recordings of on field deployed air quality chemical sensor devices responses. Ground Truth hourly averaged concentrations for CO, Non Metanic Hydrocarbons, Benzene, Total Nitrogen Oxides (NOx) and Nitrogen Dioxide (NO2) and were provided by a co-located reference certified analyzer.
+
+Missing values are tagged with -200 value.
+
+**Attribute Information:**
+
+1.  Date (DD/MM/YYYY)
+
+2.  Time (HH.MM.SS)
+
+3.  CO.GT. - True hourly averaged concentration CO in mg/m\^3 (reference analyzer)
+
+4.  PT08.S1(CO)-Tin oxide hourly averaged sensor response (nominally CO targeted).
+
+5.  C6H6(GT)-True hourly averaged Benzene concentration in microg/m\^3 (reference analyzer).
+
+6.  PT08.S2(NMHC)-Titania hourly averaged sensor response (nominally NMHC targeted).
+
+7.  NOx(GT)-True hourly averaged NOx concentration in ppb (reference analyzer)
+
+8.  PT08.S3(NOx)-Tungsten oxide hourly averaged sensor response (nominally NOx targeted).
+
+9.  NO2(GT)-True hourly averaged NO2 concentration in microg/m\^3 (reference analyzer).
+
+10. PT08.S4 (tungsten oxide)-hourly averaged sensor response (nominally NO2 targeted).
+
+11. PT08.S5 (indium oxide)-hourly averaged sensor response (nominally O3 targeted).
+
+12. Temperature-Temperature in Â°C.
+
+13. Humidity-Relative Humidity (%).
+
+14. AH-Absolute Humidity.
+
+# Exploratory Data Analysis
+
+```{r, include=FALSE}
+# Installing and loading required libraries
+
+# Set a new CRAN mirror URL
+options(repos = c(CRAN = "http://cran.r-project.org"))
+
+# Vector of package names to install and load
+packages <- c("tidyverse", "ggplot2", "dplyr", "ggcorrplot", "caret", "car", "corrplot",
+              "lubridate", "reshape2")
+
+# Install all required packages
+install.packages(packages)
+
+# Load all required libraries
+lapply(packages, library, character.only = TRUE)
+```
+
+```{r}
+# Loading Air Quality dataset
+airquality_df <- read.csv("../Data/Regression/AirQualityUCI.csv", header = TRUE, sep = ";")
+
+# Make a copy of the dataframe for EDA
+airquality <- airquality_df
+
+# view data set
+head(airquality, n=5)
+```
+
+```{r}
+# Dimension of the dataset
+dim(airquality)
+```
+
+```{r}
+# Inspecting the datatypes of the variables
+str(airquality)
+```
+
+some of the attributes has numeric values seperated by comma, instead of periods, and hence of chr datatype. We need to replace ',' by '.' and convert those attributes into numeric datatypes.
+
+```{r}
+# Replace commas with periods in relevant columns
+cols_with_commas <- c("CO.GT.", "PT08.S1.CO.", "NMHC.GT.", "C6H6.GT.", "PT08.S2.NMHC.", "NOx.GT.", "PT08.S3.NOx.", "NO2.GT.", "PT08.S4.NO2.", "PT08.S5.O3.", "T", "RH", "AH")
+
+airquality[, cols_with_commas] <- apply(airquality[, cols_with_commas], 2, function(x) as.numeric(gsub(",", ".", x)))
+```
+
+Now, let's inspect the datatypes of all the variables again.
+
+```{r}
+# Inspecting the datatypes of the variables
+str(airquality)
+```
+
+```{r}
+# Convert date and time columns to a single datetime column
+airquality$datetime <- ymd_hms(paste(airquality$Date, airquality$Time, sep = " "))
+
+# Remove the original date and time columns
+airquality <- airquality %>% select(-Date, -Time)
+```
+
+On observation, we can see that last two columns, "X" and "X.1" has all null values, and hence will be removed.
+
+```{r}
+# Remove the X and X.1 columns
+airquality <- select(airquality, -c(X, X.1))
+
+# Remove duplicates
+airquality <- distinct(airquality)
+```
+
+```{r}
+# Delete rows with all missing values
+airquality <- airquality[complete.cases(airquality),]
+
+# Check for missing values
+sum(is.na(airquality))
+```
+
+The missing values in the dataset are tagged with -200 value. These needs to be replaced with NAs and dealt accordingly.
+
+```{r}
+# Replace missing values (-200) with NA
+airquality[airquality == -200] <- NA
+
+# Check for missing values
+colSums(is.na(airquality))
+```
+
+Looking into the missing values in each columns, we observe that column "NMHC.GT." has 90% of missin values, and hence the column could be deleted.
+
+```{r}
+# Remove the NMHC.GT. column
+airquality <- select(airquality, -c(NMHC.GT.))
+```
+
+Other missing values in the numeric columns of the "airquality" data frame could be replaced with the corresponding median values.
+
+```{r}
+# Calculate the median of each numeric column
+medians <- sapply(Filter(is.numeric, airquality), median, na.rm = TRUE)
+
+# Replace missing values with median values for numeric columns
+for (col in names(Filter(is.numeric, airquality))) {
+  airquality[is.na(airquality[[col]]) & sapply(airquality[[col]], is.numeric), col] <- medians[col]
+}
+
+# Check for missing values
+colSums(is.na(airquality))
+```
+
+The **`colSums()`** function should return a vector of zeros, indicating that there are no missing values remaining in the modified "airquality" data frame.
+
+```{r}
+# Convert column names to indices
+numeric_cols <- which(sapply(airquality, is.numeric))
+
+# Display summary statistics for all numeric variables
+summary(airquality[numeric_cols])
+```
+
+The numeric columns in the "airquality" data frame should be transformed such that their mean is zero and their standard deviation is one. This is often desirable when performing statistical analyses or machine learning on the data, as it can help to reduce the impact of outliers and ensure that all variables are on a comparable scale.
+
+It is important to note that scaling the data in this way will not affect any categorical or non-numeric columns in the "airquality" data frame. If there are any categorical or non-numeric columns in the data frame, they will be left unchanged by this code.
+
+```{r}
+# Scale the numeric columns to have zero mean and unit variance
+airquality[numeric_cols] <- scale(airquality[numeric_cols])
+```
+
+Finally, let's check the dimension of the dataset.
+
+```{r}
+dim(airquality)
+```
+
+```{r}
+head(airquality)
+```
+
+```{r histogram_numVar}
+# Plot histograms for all columns except datetime
+ggplot(melt(airquality, id.vars = "datetime"), aes(x = value)) + 
+  geom_histogram() + 
+  facet_wrap(~variable, scales = "free") +
+  theme_bw() +
+  labs(title="Histogram for each variable")
+```
+
+Note that melt function from the reshape2 package is used to reshape the data frame from wide to long format, which is required by the ggplot function
+
+From the above histogram graph, it is evident all the distribution of all the attributes are skewed.
+
+Now let's look at the spread of the humidity over time.
+
+```{r AH_OverTime}
+# Time series plot of AH levels over time
+ggplot(data = airquality, aes(x = datetime, y = AH)) + 
+  geom_line(color = "blue") + 
+  labs(x = "Datetime", y = "AH levels", title = "Absolute Humidity over time")
+```
+
+Now, its important to look at the correlation of the attributes before we proceed building a model.
+
+```{r Scatterplot_T_vs_AH}
+# Plot a scatterplot of T vs. AH
+ggplot(airquality, aes(x=T, y=AH)) +
+  geom_point(color = "blue") + 
+  ggtitle("Scatter plot for Absolute humudity")
+```
+
+The scatter plot giving a relationship between the variables Temperature and Absolute Humidity infers that as temperature increases, humidity increases giving a strong positive correlation between variables.
+
+Similarly from the scatter of Temperature and RH levels, we can infer that there is a strong negative correlation between the variables.
+
+```{r scatterplot_T_vs_RH}
+# Analyze relationships between variables
+# Scatter plot of T vs. RH levels
+ggplot(data = airquality, aes(x = T, y = RH)) + 
+  geom_point(color = "blue") + 
+  labs(x = "Temperature", y = "RH levels", title = "Temperature vs. RH levels")
+```
+
+Now, let's try to see the graphical representation of the distribution of data based on the five-number summary (minimum, first quartile, median, third quartile, and maximum). It is useful for detecting outliers and understanding the spread and skewness of the data.
+
+```{r boxplot}
+ggplot(melt(airquality, id.vars = "datetime"), aes(x = "", y = value)) + 
+  geom_boxplot() + 
+  facet_wrap(~variable, scales = "free") +
+  theme_bw() +
+  labs(title="Boxplot for each variable")
+```
+
+From the box plot, we can observe the following:
+
+-   The variables "CO.GT.", "C6H6.GT.", "NOx.GT.", "NO2.GT.", "T", "RH", and "AH" have outliers, which are represented as individual points beyond the whiskers.
+
+-   The variables "PT08.S1.CO.", "PT08.S2.NMHC.", "PT08.S3.NOx.", "PT08.S4.NO2.", and "PT08.S5.O3." do not have any outliers.
+
+-   The variables "CO.GT." and "NOx.GT." have a similar median value and similar IQR, indicating that they have similar distributions.
+
+-   The variable "C6H6.GT." has a larger IQR compared to the other variables, indicating that it has a larger spread of values.
+
+-   The variable "RH" has a median value that is closer to the upper quartile, indicating that it is skewed towards higher values.
+
+-   The variable "T" has a symmetric distribution, as the median is approximately in the middle of the box.
+
+# Building a Multiple Linear Regression Model
+
+## Split the data into Training and Testing sets
+
+```{r}
+# Set the seed for reproducibility
+set.seed(123)
+
+# Split the data into training and testing sets
+train_index <- createDataPartition(airquality$AH, p = 0.7, list = FALSE)
+train_data <- airquality[train_index, ]
+test_data <- airquality[-train_index, ]
+```
+
+## Model Training
+
+```{r}
+# Fit a multiple regression model
+model <- lm(AH ~ ., data = train_data[, numeric_cols])
+
+# Print the summary of the model
+summary(model)
+```
+
+## Model Prediction
+
+```{r}
+# Generate predictions on the test set
+predictions <- predict(model, newdata = test_data[, numeric_cols])
+```
+
+## Model Evaluation
+
+```{r}
+# Calculate RMSE
+rmse <- sqrt(mean((test_data$AH - predictions)^2))
+
+# Calculate R-squared
+r_squared <- cor(test_data$AH, predictions)^2
+
+# Print the results
+cat("RMSE:", rmse, "\n")
+cat("R-squared:", r_squared, "\n")
+```
+
+# Key Assumption Check
+
+## Distribution of Model
+
+This can be shown in R using the `hist()` function.
+
+```{r}
+# Get the model residuals
+model_residuals = model$residuals
+
+# Plot the result
+hist(model_residuals)
+```
+
+It appears that the histogram of the data is skewed to the left, which may indicate that the data is not normally distributed. Therefore, it may not be appropriate to rely on the histogram to assess the normality of the data with a high degree of confidence. Alternatively, we can examine the residuals using a normal Q-Q plot, which can provide a more reliable indication of normality. Specifically, if the data is normally distributed, the residuals should follow a straight line on the Q-Q plot.
+
+```{r}
+# Get the model residuals
+model_residuals = model$residuals
+
+# Plot the Q-Q plot
+plot(qqnorm(model_residuals))+
+qqline(model_residuals)
+```
+
+From the plot, we can observe that a huge portions of the residuals lie in a straight line and very few residuals do not fall close to the line (end of the right tail and towards the end of the left tail) and there are some deviations from normality. Thus we can assume that the residuals of the model do follow a normal distribution.
+
+## Multicollinearity assumption check
+
+Multicollinearity refers to the situation where two or more predictor variables in a regression model are highly correlated with each other, which can cause problems such as unstable coefficient estimates, inflated standard errors, and reduced predictive accuracy.
+
+There are several ways to check for multicollinearity in a regression model, including:
+
+1.  Correlation matrix
+
+2.  Variance Inflation Factor (VIF)
+
+### Correlation matrix
+
+Compute the pairwise correlation coefficients between the predictor variables and look for high correlations (e.g., above 0.8 or 0.9).
+
+```{r}
+# Select predictor variables
+predictor_vars <- airquality %>%
+  select(-c(datetime, AH))
+
+# Compute correlation at 2 decimal places
+corr_matrix = round(cor(predictor_vars), 2)
+
+# Compute and show the  result
+ggcorrplot(corr_matrix, hc.order = TRUE, type = "lower",
+          lab = TRUE)
+```
+
+We can notice two strong correlations because their value is higher than 0.8. 
+
+-   C6H6.GT.
+
+-   PT08.S2.NMHC.
+
+### VIF
+
+Compute the VIF for each predictor variable, which measures how much the variance of a coefficient estimate is inflated due to multicollinearity. A VIF above 5 or 10 is often considered indicative of problematic multicollinearity.
+
+```{r}
+# Multicollinearity assumption check - VIF
+vif_vals <- vif(model)
+print(vif_vals)
+```
+
+Even from the VIF score, we can notice multicollinearity on below two variables 
+
+-   C6H6.GT.
+
+-   PT08.S2.NMHC.
+
+In this case, we can get rid of these two variables in the dataset. 
+
+# Re-building model
+
+Now, let's try to build a second model without those two variables.
+
+```{r}
+# Identify predictor variables with VIF > 10
+high_vif_vars <- names(vif_vals[vif_vals > 10])
+
+# Remove predictor variables with high VIF values
+reduced_formula <- as.formula(paste("AH ~", paste(setdiff(names(train_data[numeric_cols]),
+                                                          high_vif_vars), collapse = "+")))
+
+# Fit a new multiple regression model with the reduced formula
+reduced_model <- lm(reduced_formula, data = train_data)
+```
+
+```{r}
+# Print the summary of the reduced model
+summary(reduced_model)
+```
+
+# Conclusion
+
+Based on the evaluation metrics you provided, it seems that Model1 with all predictor variables has a higher Multiple R-squared and Adjusted R-squared value (0.9044 and 0.9042) than Model2, which removed the multicollinearity attributes (0.8885 and 0.8884). This indicates that Model1 has a better predictive power and can explain a larger portion of the variance in the outcome variable.
+
+However, Model1 might suffer from multicollinearity, which can lead to unstable coefficient estimates, reduce the model's interpretability, and increase the variance of the errors. Model2 attempts to address this issue by removing the multicollinearity attributes, but this has led to a reduction in the R-squared values.
+
+Other way of answering this question is to run an analysis of variance (ANOVA) test of the two models. It tests the null hypothesis (H0), where the variables that we removed previously have no significance, against the alternative hypothesis (H1) that those variables are significant.
+
+If the new model is an improvement of the original model, then we fail to reject H0. If that is not the case, it means that those variables were significant; hence we reject H0.
+
+```{r}
+anova(model, reduced_model)
+```
+
+From the ANOVA result, Model 1, which includes all predictor variables, with Model 2, which includes only the predictor variables with low VIF values and the outcome variable.
+
+In this case, the ANOVA table shows that Model 2 has a significantly lower residual sum of squares than Model 1 (i.e., the sum of squares due to the change in the model is significant), as indicated by the F-statistic and the p-value. This suggests that Model 2, which includes only the predictor variables with low VIF values and the outcome variable, is a better fit for the data than Model 1, which includes all predictor variables.
+
+However, the decision to choose between these two models depends on the specific research question and the context of the analysis. If the goal is to maximize the model's predictive power and interpretability, Model1 might be a better choice, but if the goal is to reduce multicollinearity and simplify the model, Model2 might be a better choice.
+
+In any case, it's important to evaluate the models using multiple metrics and consider other factors such as the domain knowledge and the research question when deciding which model to choose.

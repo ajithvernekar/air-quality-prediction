@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Ajith Vernekar" />
+
+<meta name="date" content="2023-03-31" />
+
+<title>Regression Algorithm</title>
+
+<script src="Regression_files/header-attrs-2.17/header-attrs.js"></script>
+<script src="Regression_files/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="Regression_files/bootstrap-3.3.5/css/united.min.css" rel="stylesheet" />
+<script src="Regression_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="Regression_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="Regression_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="Regression_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="Regression_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="Regression_files/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="Regression_files/navigation-1.1/tabsets.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  background-color: #f8f8f8; }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ef2929; } /* Alert */
+code span.an { color: #8f5902; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #c4a000; } /* Attribute */
+code span.bn { color: #0000cf; } /* BaseN */
+code span.cf { color: #204a87; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4e9a06; } /* Char */
+code span.cn { color: #000000; } /* Constant */
+code span.co { color: #8f5902; font-style: italic; } /* Comment */
+code span.cv { color: #8f5902; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #8f5902; font-weight: bold; font-style: italic; } /* Documentation */
+code span.dt { color: #204a87; } /* DataType */
+code span.dv { color: #0000cf; } /* DecVal */
+code span.er { color: #a40000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #0000cf; } /* Float */
+code span.fu { color: #000000; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #8f5902; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #204a87; font-weight: bold; } /* Keyword */
+code span.op { color: #ce5c00; font-weight: bold; } /* Operator */
+code span.ot { color: #8f5902; } /* Other */
+code span.pp { color: #8f5902; font-style: italic; } /* Preprocessor */
+code span.sc { color: #000000; } /* SpecialChar */
+code span.ss { color: #4e9a06; } /* SpecialString */
+code span.st { color: #4e9a06; } /* String */
+code span.va { color: #000000; } /* Variable */
+code span.vs { color: #4e9a06; } /* VerbatimString */
+code span.wa { color: #8f5902; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Regression Algorithm</h1>
+<h4 class="author">Ajith Vernekar</h4>
+<h4 class="date">2023-03-31</h4>
+
+</div>
+
+
+<p>This project demonstrates on the regression model using multiple
+linear regression algorithm in R. I have used air quality dataset. This
+dataset contains the responses of a gas multisensor device deployed on
+the field in an Italian city. Hourly responses averages are recorded
+along with gas concentrations references from a certified analyzer.</p>
+<div id="data" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> Data</h1>
+<p>The dataset contains 9358 instances of hourly averaged responses from
+an array of 5 metal oxide chemical sensors embedded in an Air Quality
+Chemical Multisensor Device. The device was located on the field in a
+significantly polluted area, at road level,within an Italian city.</p>
+<p>You can access the dataset and its information from the following
+link: <a href="https://archive.ics.uci.edu/ml/datasets/Air+Quality#"
+class="uri">https://archive.ics.uci.edu/ml/datasets/Air+Quality#</a></p>
+<p>Data were recorded from March 2004 to February 2005 (one
+year)representing the longest freely available recordings of on field
+deployed air quality chemical sensor devices responses. Ground Truth
+hourly averaged concentrations for CO, Non Metanic Hydrocarbons,
+Benzene, Total Nitrogen Oxides (NOx) and Nitrogen Dioxide (NO2) and were
+provided by a co-located reference certified analyzer.</p>
+<p>Missing values are tagged with -200 value.</p>
+<p><strong>Attribute Information:</strong></p>
+<ol style="list-style-type: decimal">
+<li><p>Date (DD/MM/YYYY)</p></li>
+<li><p>Time (HH.MM.SS)</p></li>
+<li><p>CO.GT. - True hourly averaged concentration CO in mg/m^3
+(reference analyzer)</p></li>
+<li><p>PT08.S1(CO)-Tin oxide hourly averaged sensor response (nominally
+CO targeted).</p></li>
+<li><p>C6H6(GT)-True hourly averaged Benzene concentration in microg/m^3
+(reference analyzer).</p></li>
+<li><p>PT08.S2(NMHC)-Titania hourly averaged sensor response (nominally
+NMHC targeted).</p></li>
+<li><p>NOx(GT)-True hourly averaged NOx concentration in ppb (reference
+analyzer)</p></li>
+<li><p>PT08.S3(NOx)-Tungsten oxide hourly averaged sensor response
+(nominally NOx targeted).</p></li>
+<li><p>NO2(GT)-True hourly averaged NO2 concentration in microg/m^3
+(reference analyzer).</p></li>
+<li><p>PT08.S4 (tungsten oxide)-hourly averaged sensor response
+(nominally NO2 targeted).</p></li>
+<li><p>PT08.S5 (indium oxide)-hourly averaged sensor response (nominally
+O3 targeted).</p></li>
+<li><p>Temperature-Temperature in Â°C.</p></li>
+<li><p>Humidity-Relative Humidity (%).</p></li>
+<li><p>AH-Absolute Humidity.</p></li>
+</ol>
+</div>
+<div id="exploratory-data-analysis" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> Exploratory Data
+Analysis</h1>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Loading Air Quality dataset</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>airquality_df <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&quot;../Data/Regression/AirQualityUCI.csv&quot;</span>, <span class="at">header =</span> <span class="cn">TRUE</span>, <span class="at">sep =</span> <span class="st">&quot;;&quot;</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Make a copy of the dataframe for EDA</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>airquality <span class="ot">&lt;-</span> airquality_df</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># view data set</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(airquality, <span class="at">n=</span><span class="dv">5</span>)</span></code></pre></div>
+<pre><code>##         Date     Time CO.GT. PT08.S1.CO. NMHC.GT. C6H6.GT. PT08.S2.NMHC.
+## 1 10/03/2004 18.00.00    2,6        1360      150     11,9          1046
+## 2 10/03/2004 19.00.00      2        1292      112      9,4           955
+## 3 10/03/2004 20.00.00    2,2        1402       88      9,0           939
+## 4 10/03/2004 21.00.00    2,2        1376       80      9,2           948
+## 5 10/03/2004 22.00.00    1,6        1272       51      6,5           836
+##   NOx.GT. PT08.S3.NOx. NO2.GT. PT08.S4.NO2. PT08.S5.O3.    T   RH     AH  X X.1
+## 1     166         1056     113         1692        1268 13,6 48,9 0,7578 NA  NA
+## 2     103         1174      92         1559         972 13,3 47,7 0,7255 NA  NA
+## 3     131         1140     114         1555        1074 11,9 54,0 0,7502 NA  NA
+## 4     172         1092     122         1584        1203 11,0 60,0 0,7867 NA  NA
+## 5     131         1205     116         1490        1110 11,2 59,6 0,7888 NA  NA</code></pre>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Dimension of the dataset</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(airquality)</span></code></pre></div>
+<pre><code>## [1] 9471   17</code></pre>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Inspecting the datatypes of the variables</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(airquality)</span></code></pre></div>
+<pre><code>## &#39;data.frame&#39;:    9471 obs. of  17 variables:
+##  $ Date         : chr  &quot;10/03/2004&quot; &quot;10/03/2004&quot; &quot;10/03/2004&quot; &quot;10/03/2004&quot; ...
+##  $ Time         : chr  &quot;18.00.00&quot; &quot;19.00.00&quot; &quot;20.00.00&quot; &quot;21.00.00&quot; ...
+##  $ CO.GT.       : chr  &quot;2,6&quot; &quot;2&quot; &quot;2,2&quot; &quot;2,2&quot; ...
+##  $ PT08.S1.CO.  : int  1360 1292 1402 1376 1272 1197 1185 1136 1094 1010 ...
+##  $ NMHC.GT.     : int  150 112 88 80 51 38 31 31 24 19 ...
+##  $ C6H6.GT.     : chr  &quot;11,9&quot; &quot;9,4&quot; &quot;9,0&quot; &quot;9,2&quot; ...
+##  $ PT08.S2.NMHC.: int  1046 955 939 948 836 750 690 672 609 561 ...
+##  $ NOx.GT.      : int  166 103 131 172 131 89 62 62 45 -200 ...
+##  $ PT08.S3.NOx. : int  1056 1174 1140 1092 1205 1337 1462 1453 1579 1705 ...
+##  $ NO2.GT.      : int  113 92 114 122 116 96 77 76 60 -200 ...
+##  $ PT08.S4.NO2. : int  1692 1559 1555 1584 1490 1393 1333 1333 1276 1235 ...
+##  $ PT08.S5.O3.  : int  1268 972 1074 1203 1110 949 733 730 620 501 ...
+##  $ T            : chr  &quot;13,6&quot; &quot;13,3&quot; &quot;11,9&quot; &quot;11,0&quot; ...
+##  $ RH           : chr  &quot;48,9&quot; &quot;47,7&quot; &quot;54,0&quot; &quot;60,0&quot; ...
+##  $ AH           : chr  &quot;0,7578&quot; &quot;0,7255&quot; &quot;0,7502&quot; &quot;0,7867&quot; ...
+##  $ X            : logi  NA NA NA NA NA NA ...
+##  $ X.1          : logi  NA NA NA NA NA NA ...</code></pre>
+<p>some of the attributes has numeric values seperated by comma, instead
+of periods, and hence of chr datatype. We need to replace ‘,’ by ‘.’ and
+convert those attributes into numeric datatypes.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace commas with periods in relevant columns</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>cols_with_commas <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;CO.GT.&quot;</span>, <span class="st">&quot;PT08.S1.CO.&quot;</span>, <span class="st">&quot;NMHC.GT.&quot;</span>, <span class="st">&quot;C6H6.GT.&quot;</span>, <span class="st">&quot;PT08.S2.NMHC.&quot;</span>, <span class="st">&quot;NOx.GT.&quot;</span>, <span class="st">&quot;PT08.S3.NOx.&quot;</span>, <span class="st">&quot;NO2.GT.&quot;</span>, <span class="st">&quot;PT08.S4.NO2.&quot;</span>, <span class="st">&quot;PT08.S5.O3.&quot;</span>, <span class="st">&quot;T&quot;</span>, <span class="st">&quot;RH&quot;</span>, <span class="st">&quot;AH&quot;</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>airquality[, cols_with_commas] <span class="ot">&lt;-</span> <span class="fu">apply</span>(airquality[, cols_with_commas], <span class="dv">2</span>, <span class="cf">function</span>(x) <span class="fu">as.numeric</span>(<span class="fu">gsub</span>(<span class="st">&quot;,&quot;</span>, <span class="st">&quot;.&quot;</span>, x)))</span></code></pre></div>
+<p>Now, let’s inspect the datatypes of all the variables again.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Inspecting the datatypes of the variables</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(airquality)</span></code></pre></div>
+<pre><code>## &#39;data.frame&#39;:    9471 obs. of  17 variables:
+##  $ Date         : chr  &quot;10/03/2004&quot; &quot;10/03/2004&quot; &quot;10/03/2004&quot; &quot;10/03/2004&quot; ...
+##  $ Time         : chr  &quot;18.00.00&quot; &quot;19.00.00&quot; &quot;20.00.00&quot; &quot;21.00.00&quot; ...
+##  $ CO.GT.       : num  2.6 2 2.2 2.2 1.6 1.2 1.2 1 0.9 0.6 ...
+##  $ PT08.S1.CO.  : num  1360 1292 1402 1376 1272 ...
+##  $ NMHC.GT.     : num  150 112 88 80 51 38 31 31 24 19 ...
+##  $ C6H6.GT.     : num  11.9 9.4 9 9.2 6.5 4.7 3.6 3.3 2.3 1.7 ...
+##  $ PT08.S2.NMHC.: num  1046 955 939 948 836 ...
+##  $ NOx.GT.      : num  166 103 131 172 131 89 62 62 45 -200 ...
+##  $ PT08.S3.NOx. : num  1056 1174 1140 1092 1205 ...
+##  $ NO2.GT.      : num  113 92 114 122 116 96 77 76 60 -200 ...
+##  $ PT08.S4.NO2. : num  1692 1559 1555 1584 1490 ...
+##  $ PT08.S5.O3.  : num  1268 972 1074 1203 1110 ...
+##  $ T            : num  13.6 13.3 11.9 11 11.2 11.2 11.3 10.7 10.7 10.3 ...
+##  $ RH           : num  48.9 47.7 54 60 59.6 59.2 56.8 60 59.7 60.2 ...
+##  $ AH           : num  0.758 0.726 0.75 0.787 0.789 ...
+##  $ X            : logi  NA NA NA NA NA NA ...
+##  $ X.1          : logi  NA NA NA NA NA NA ...</code></pre>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert date and time columns to a single datetime column</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>airquality<span class="sc">$</span>datetime <span class="ot">&lt;-</span> <span class="fu">ymd_hms</span>(<span class="fu">paste</span>(airquality<span class="sc">$</span>Date, airquality<span class="sc">$</span>Time, <span class="at">sep =</span> <span class="st">&quot; &quot;</span>))</span></code></pre></div>
+<pre><code>## Warning: 114 failed to parse.</code></pre>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove the original date and time columns</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>airquality <span class="ot">&lt;-</span> airquality <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>Date, <span class="sc">-</span>Time)</span></code></pre></div>
+<p>On observation, we can see that last two columns, “X” and “X.1” has
+all null values, and hence will be removed.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove the X and X.1 columns</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>airquality <span class="ot">&lt;-</span> <span class="fu">select</span>(airquality, <span class="sc">-</span><span class="fu">c</span>(X, X<span class="fl">.1</span>))</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove duplicates</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>airquality <span class="ot">&lt;-</span> <span class="fu">distinct</span>(airquality)</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Delete rows with all missing values</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>airquality <span class="ot">&lt;-</span> airquality[<span class="fu">complete.cases</span>(airquality),]</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Check for missing values</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">is.na</span>(airquality))</span></code></pre></div>
+<pre><code>## [1] 0</code></pre>
+<p>The missing values in the dataset are tagged with -200 value. These
+needs to be replaced with NAs and dealt accordingly.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace missing values (-200) with NA</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>airquality[airquality <span class="sc">==</span> <span class="sc">-</span><span class="dv">200</span>] <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Check for missing values</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(<span class="fu">is.na</span>(airquality))</span></code></pre></div>
+<pre><code>##        CO.GT.   PT08.S1.CO.      NMHC.GT.      C6H6.GT. PT08.S2.NMHC. 
+##          1683           366          8443           366           366 
+##       NOx.GT.  PT08.S3.NOx.       NO2.GT.  PT08.S4.NO2.   PT08.S5.O3. 
+##          1639           366          1642           366           366 
+##             T            RH            AH      datetime 
+##           366           366           366             0</code></pre>
+<p>Looking into the missing values in each columns, we observe that
+column “NMHC.GT.” has 90% of missin values, and hence the column could
+be deleted.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove the NMHC.GT. column</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>airquality <span class="ot">&lt;-</span> <span class="fu">select</span>(airquality, <span class="sc">-</span><span class="fu">c</span>(NMHC.GT.))</span></code></pre></div>
+<p>Other missing values in the numeric columns of the “airquality” data
+frame could be replaced with the corresponding median values.</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate the median of each numeric column</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>medians <span class="ot">&lt;-</span> <span class="fu">sapply</span>(<span class="fu">Filter</span>(is.numeric, airquality), median, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace missing values with median values for numeric columns</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (col <span class="cf">in</span> <span class="fu">names</span>(<span class="fu">Filter</span>(is.numeric, airquality))) {</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  airquality[<span class="fu">is.na</span>(airquality[[col]]) <span class="sc">&amp;</span> <span class="fu">sapply</span>(airquality[[col]], is.numeric), col] <span class="ot">&lt;-</span> medians[col]</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Check for missing values</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(<span class="fu">is.na</span>(airquality))</span></code></pre></div>
+<pre><code>##        CO.GT.   PT08.S1.CO.      C6H6.GT. PT08.S2.NMHC.       NOx.GT. 
+##             0             0             0             0             0 
+##  PT08.S3.NOx.       NO2.GT.  PT08.S4.NO2.   PT08.S5.O3.             T 
+##             0             0             0             0             0 
+##            RH            AH      datetime 
+##             0             0             0</code></pre>
+<p>The <strong><code>colSums()</code></strong> function should return a
+vector of zeros, indicating that there are no missing values remaining
+in the modified “airquality” data frame.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert column names to indices</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>numeric_cols <span class="ot">&lt;-</span> <span class="fu">which</span>(<span class="fu">sapply</span>(airquality, is.numeric))</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Display summary statistics for all numeric variables</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(airquality[numeric_cols])</span></code></pre></div>
+<pre><code>##      CO.GT.        PT08.S1.CO.      C6H6.GT.     PT08.S2.NMHC. 
+##  Min.   : 0.100   Min.   : 647   Min.   : 0.10   Min.   : 383  
+##  1st Qu.: 1.200   1st Qu.: 941   1st Qu.: 4.60   1st Qu.: 743  
+##  Median : 1.800   Median :1063   Median : 8.20   Median : 909  
+##  Mean   : 2.089   Mean   :1098   Mean   :10.01   Mean   : 938  
+##  3rd Qu.: 2.600   3rd Qu.:1221   3rd Qu.:13.60   3rd Qu.:1105  
+##  Max.   :11.900   Max.   :2040   Max.   :63.70   Max.   :2214  
+##     NOx.GT.        PT08.S3.NOx.       NO2.GT.       PT08.S4.NO2. 
+##  Min.   :   2.0   Min.   : 322.0   Min.   :  2.0   Min.   : 551  
+##  1st Qu.: 112.0   1st Qu.: 666.0   1st Qu.: 86.0   1st Qu.:1242  
+##  Median : 180.0   Median : 806.0   Median :109.0   Median :1463  
+##  Mean   : 235.2   Mean   : 834.3   Mean   :112.4   Mean   :1457  
+##  3rd Qu.: 284.0   3rd Qu.: 960.0   3rd Qu.:133.0   3rd Qu.:1662  
+##  Max.   :1479.0   Max.   :2683.0   Max.   :340.0   Max.   :2775  
+##   PT08.S5.O3.         T              RH              AH        
+##  Min.   : 221   Min.   :-1.9   Min.   : 9.20   Min.   :0.1847  
+##  1st Qu.: 742   1st Qu.:12.0   1st Qu.:36.60   1st Qu.:0.7461  
+##  Median : 963   Median :17.8   Median :49.60   Median :0.9954  
+##  Mean   :1021   Mean   :18.3   Mean   :49.25   Mean   :1.0244  
+##  3rd Qu.:1255   3rd Qu.:24.1   3rd Qu.:61.90   3rd Qu.:1.2962  
+##  Max.   :2523   Max.   :44.6   Max.   :88.70   Max.   :2.2310</code></pre>
+<p>The numeric columns in the “airquality” data frame should be
+transformed such that their mean is zero and their standard deviation is
+one. This is often desirable when performing statistical analyses or
+machine learning on the data, as it can help to reduce the impact of
+outliers and ensure that all variables are on a comparable scale.</p>
+<p>It is important to note that scaling the data in this way will not
+affect any categorical or non-numeric columns in the “airquality” data
+frame. If there are any categorical or non-numeric columns in the data
+frame, they will be left unchanged by this code.</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Scale the numeric columns to have zero mean and unit variance</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>airquality[numeric_cols] <span class="ot">&lt;-</span> <span class="fu">scale</span>(airquality[numeric_cols])</span></code></pre></div>
+<p>Finally, let’s check the dimension of the dataset.</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(airquality)</span></code></pre></div>
+<pre><code>## [1] 9357   13</code></pre>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(airquality)</span></code></pre></div>
+<pre><code>##        CO.GT. PT08.S1.CO.    C6H6.GT. PT08.S2.NMHC.    NOx.GT. PT08.S3.NOx.
+## 1  0.38600794   1.2287153  0.25856287   0.412903374 -0.3545981    0.8802709
+## 2 -0.06749848   0.9093337 -0.08335155   0.065078032 -0.6775243    1.3488803
+## 3  0.08367033   1.4259804 -0.13805786   0.003921928 -0.5340015    1.2138572
+## 4  0.08367033   1.3038639 -0.11070471   0.038322237 -0.3238432    1.0232365
+## 5 -0.36983609   0.8153979 -0.47997229  -0.389770491 -0.5340015    1.4719895
+## 6 -0.67217370   0.4631388 -0.72615068  -0.718484549 -0.7492856    1.9961966
+##       NO2.GT. PT08.S4.NO2. PT08.S5.O3.          T          RH         AH
+## 1  0.01425979   0.69385006   0.6331797 -0.5425565 -0.02053079 -0.6733170
+## 2 -0.46357201   0.30194750  -0.1242701 -0.5772056 -0.09122320 -0.7549077
+## 3  0.03701368   0.29016096   0.1367430 -0.7389016  0.27991193 -0.6925148
+## 4  0.21904485   0.37561340   0.4668478 -0.8428491  0.63337395 -0.6003148
+## 5  0.08252147   0.09862963   0.2288653 -0.8197497  0.60980982 -0.5950102
+## 6 -0.37255643  -0.18719404  -0.1831260 -0.8197497  0.58624568 -0.6051143
+##              datetime
+## 1 2010-03-20 04:18:00
+## 2 2010-03-20 04:19:00
+## 3 2010-03-20 04:20:00
+## 4 2010-03-20 04:21:00
+## 5 2010-03-20 04:22:00
+## 6 2010-03-20 04:23:00</code></pre>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot histograms for all columns except datetime</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">melt</span>(airquality, <span class="at">id.vars =</span> <span class="st">&quot;datetime&quot;</span>), <span class="fu">aes</span>(<span class="at">x =</span> value)) <span class="sc">+</span> </span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>() <span class="sc">+</span> </span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>variable, <span class="at">scales =</span> <span class="st">&quot;free&quot;</span>) <span class="sc">+</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">&quot;Histogram for each variable&quot;</span>)</span></code></pre></div>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="Regression_files/figure-html/histogram_numVar-1.png" width="672" /></p>
+<p>Note that melt function from the reshape2 package is used to reshape
+the data frame from wide to long format, which is required by the ggplot
+function</p>
+<p>From the above histogram graph, it is evident all the distribution of
+all the attributes are skewed.</p>
+<p>Now let’s look at the spread of the humidity over time.</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Time series plot of AH levels over time</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> airquality, <span class="fu">aes</span>(<span class="at">x =</span> datetime, <span class="at">y =</span> AH)) <span class="sc">+</span> </span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">&quot;blue&quot;</span>) <span class="sc">+</span> </span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;Datetime&quot;</span>, <span class="at">y =</span> <span class="st">&quot;AH levels&quot;</span>, <span class="at">title =</span> <span class="st">&quot;Absolute Humidity over time&quot;</span>)</span></code></pre></div>
+<p><img src="Regression_files/figure-html/AH_OverTime-1.png" width="672" /></p>
+<p>Now, its important to look at the correlation of the attributes
+before we proceed building a model.</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot a scatterplot of T vs. AH</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(airquality, <span class="fu">aes</span>(<span class="at">x=</span>T, <span class="at">y=</span>AH)) <span class="sc">+</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">&quot;blue&quot;</span>) <span class="sc">+</span> </span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">&quot;Scatter plot for Absolute humudity&quot;</span>)</span></code></pre></div>
+<p><img src="Regression_files/figure-html/Scatterplot_T_vs_AH-1.png" width="672" /></p>
+<p>The scatter plot giving a relationship between the variables
+Temperature and Absolute Humidity infers that as temperature increases,
+humidity increases giving a strong positive correlation between
+variables.</p>
+<p>Similarly from the scatter of Temperature and RH levels, we can infer
+that there is a strong negative correlation between the variables.</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Analyze relationships between variables</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Scatter plot of T vs. RH levels</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> airquality, <span class="fu">aes</span>(<span class="at">x =</span> T, <span class="at">y =</span> RH)) <span class="sc">+</span> </span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">&quot;blue&quot;</span>) <span class="sc">+</span> </span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;Temperature&quot;</span>, <span class="at">y =</span> <span class="st">&quot;RH levels&quot;</span>, <span class="at">title =</span> <span class="st">&quot;Temperature vs. RH levels&quot;</span>)</span></code></pre></div>
+<p><img src="Regression_files/figure-html/scatterplot_T_vs_RH-1.png" width="672" /></p>
+<p>Now, let’s try to see the graphical representation of the
+distribution of data based on the five-number summary (minimum, first
+quartile, median, third quartile, and maximum). It is useful for
+detecting outliers and understanding the spread and skewness of the
+data.</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">melt</span>(airquality, <span class="at">id.vars =</span> <span class="st">&quot;datetime&quot;</span>), <span class="fu">aes</span>(<span class="at">x =</span> <span class="st">&quot;&quot;</span>, <span class="at">y =</span> value)) <span class="sc">+</span> </span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>() <span class="sc">+</span> </span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>variable, <span class="at">scales =</span> <span class="st">&quot;free&quot;</span>) <span class="sc">+</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">&quot;Boxplot for each variable&quot;</span>)</span></code></pre></div>
+<p><img src="Regression_files/figure-html/boxplot-1.png" width="672" /></p>
+<p>From the box plot, we can observe the following:</p>
+<ul>
+<li><p>The variables “CO.GT.”, “C6H6.GT.”, “NOx.GT.”, “NO2.GT.”, “T”,
+“RH”, and “AH” have outliers, which are represented as individual points
+beyond the whiskers.</p></li>
+<li><p>The variables “PT08.S1.CO.”, “PT08.S2.NMHC.”, “PT08.S3.NOx.”,
+“PT08.S4.NO2.”, and “PT08.S5.O3.” do not have any outliers.</p></li>
+<li><p>The variables “CO.GT.” and “NOx.GT.” have a similar median value
+and similar IQR, indicating that they have similar
+distributions.</p></li>
+<li><p>The variable “C6H6.GT.” has a larger IQR compared to the other
+variables, indicating that it has a larger spread of values.</p></li>
+<li><p>The variable “RH” has a median value that is closer to the upper
+quartile, indicating that it is skewed towards higher values.</p></li>
+<li><p>The variable “T” has a symmetric distribution, as the median is
+approximately in the middle of the box.</p></li>
+</ul>
+</div>
+<div id="building-a-multiple-linear-regression-model"
+class="section level1" number="3">
+<h1><span class="header-section-number">3</span> Building a Multiple
+Linear Regression Model</h1>
+<div id="split-the-data-into-training-and-testing-sets"
+class="section level2" number="3.1">
+<h2><span class="header-section-number">3.1</span> Split the data into
+Training and Testing sets</h2>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Set the seed for reproducibility</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Split the data into training and testing sets</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>train_index <span class="ot">&lt;-</span> <span class="fu">createDataPartition</span>(airquality<span class="sc">$</span>AH, <span class="at">p =</span> <span class="fl">0.7</span>, <span class="at">list =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>train_data <span class="ot">&lt;-</span> airquality[train_index, ]</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>test_data <span class="ot">&lt;-</span> airquality[<span class="sc">-</span>train_index, ]</span></code></pre></div>
+</div>
+<div id="model-training" class="section level2" number="3.2">
+<h2><span class="header-section-number">3.2</span> Model Training</h2>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit a multiple regression model</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(AH <span class="sc">~</span> ., <span class="at">data =</span> train_data[, numeric_cols])</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the summary of the model</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code></pre></div>
+<pre><code>## 
+## Call:
+## lm(formula = AH ~ ., data = train_data[, numeric_cols])
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.60325 -0.18288 -0.03489  0.17257  1.73359 
+## 
+## Coefficients:
+##                Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   -0.001102   0.003817  -0.289    0.773    
+## CO.GT.        -0.039388   0.008760  -4.496 7.03e-06 ***
+## PT08.S1.CO.   -0.125375   0.010825 -11.582  &lt; 2e-16 ***
+## C6H6.GT.       0.316457   0.023782  13.306  &lt; 2e-16 ***
+## PT08.S2.NMHC. -0.713497   0.029327 -24.329  &lt; 2e-16 ***
+## NOx.GT.        0.091137   0.008926  10.211  &lt; 2e-16 ***
+## PT08.S3.NOx.  -0.247391   0.008370 -29.558  &lt; 2e-16 ***
+## NO2.GT.       -0.085972   0.007176 -11.981  &lt; 2e-16 ***
+## PT08.S4.NO2.   0.377287   0.012966  29.099  &lt; 2e-16 ***
+## PT08.S5.O3.    0.087337   0.011137   7.842 5.14e-15 ***
+## T              0.891317   0.009388  94.947  &lt; 2e-16 ***
+## RH             0.618496   0.007737  79.940  &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.3089 on 6540 degrees of freedom
+## Multiple R-squared:  0.9044, Adjusted R-squared:  0.9042 
+## F-statistic:  5624 on 11 and 6540 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+<div id="model-prediction" class="section level2" number="3.3">
+<h2><span class="header-section-number">3.3</span> Model Prediction</h2>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate predictions on the test set</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">&lt;-</span> <span class="fu">predict</span>(model, <span class="at">newdata =</span> test_data[, numeric_cols])</span></code></pre></div>
+</div>
+<div id="model-evaluation" class="section level2" number="3.4">
+<h2><span class="header-section-number">3.4</span> Model Evaluation</h2>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate RMSE</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>rmse <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">mean</span>((test_data<span class="sc">$</span>AH <span class="sc">-</span> predictions)<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate R-squared</span></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>r_squared <span class="ot">&lt;-</span> <span class="fu">cor</span>(test_data<span class="sc">$</span>AH, predictions)<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the results</span></span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;RMSE:&quot;</span>, rmse, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
+<pre><code>## RMSE: 0.3067288</code></pre>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;R-squared:&quot;</span>, r_squared, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
+<pre><code>## R-squared: 0.9067064</code></pre>
+</div>
+</div>
+<div id="key-assumption-check" class="section level1" number="4">
+<h1><span class="header-section-number">4</span> Key Assumption
+Check</h1>
+<div id="distribution-of-model" class="section level2" number="4.1">
+<h2><span class="header-section-number">4.1</span> Distribution of
+Model</h2>
+<p>This can be shown in R using the <code>hist()</code> function.</p>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get the model residuals</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>model_residuals <span class="ot">=</span> model<span class="sc">$</span>residuals</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the result</span></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(model_residuals)</span></code></pre></div>
+<p><img src="Regression_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
+<p>It appears that the histogram of the data is skewed to the left,
+which may indicate that the data is not normally distributed. Therefore,
+it may not be appropriate to rely on the histogram to assess the
+normality of the data with a high degree of confidence. Alternatively,
+we can examine the residuals using a normal Q-Q plot, which can provide
+a more reliable indication of normality. Specifically, if the data is
+normally distributed, the residuals should follow a straight line on the
+Q-Q plot.</p>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get the model residuals</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>model_residuals <span class="ot">=</span> model<span class="sc">$</span>residuals</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the Q-Q plot</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">qqnorm</span>(model_residuals))<span class="sc">+</span></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a><span class="fu">qqline</span>(model_residuals)</span></code></pre></div>
+<p><img src="Regression_files/figure-html/unnamed-chunk-22-1.png" width="672" /><img src="Regression_files/figure-html/unnamed-chunk-22-2.png" width="672" /></p>
+<pre><code>## integer(0)</code></pre>
+<p>From the plot, we can observe that a huge portions of the residuals
+lie in a straight line and very few residuals do not fall close to the
+line (end of the right tail and towards the end of the left tail) and
+there are some deviations from normality. Thus we can assume that the
+residuals of the model do follow a normal distribution.</p>
+</div>
+<div id="multicollinearity-assumption-check" class="section level2"
+number="4.2">
+<h2><span class="header-section-number">4.2</span> Multicollinearity
+assumption check</h2>
+<p>Multicollinearity refers to the situation where two or more predictor
+variables in a regression model are highly correlated with each other,
+which can cause problems such as unstable coefficient estimates,
+inflated standard errors, and reduced predictive accuracy.</p>
+<p>There are several ways to check for multicollinearity in a regression
+model, including:</p>
+<ol style="list-style-type: decimal">
+<li><p>Correlation matrix</p></li>
+<li><p>Variance Inflation Factor (VIF)</p></li>
+</ol>
+<div id="correlation-matrix" class="section level3" number="4.2.1">
+<h3><span class="header-section-number">4.2.1</span> Correlation
+matrix</h3>
+<p>Compute the pairwise correlation coefficients between the predictor
+variables and look for high correlations (e.g., above 0.8 or 0.9).</p>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Select predictor variables</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>predictor_vars <span class="ot">&lt;-</span> airquality <span class="sc">%&gt;%</span></span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(datetime, AH))</span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute correlation at 2 decimal places</span></span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>corr_matrix <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">cor</span>(predictor_vars), <span class="dv">2</span>)</span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute and show the  result</span></span>
+<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a><span class="fu">ggcorrplot</span>(corr_matrix, <span class="at">hc.order =</span> <span class="cn">TRUE</span>, <span class="at">type =</span> <span class="st">&quot;lower&quot;</span>,</span>
+<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a>          <span class="at">lab =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<p><img src="Regression_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
+<p>We can notice two strong correlations because their value is higher
+than 0.8. </p>
+<ul>
+<li><p>C6H6.GT.</p></li>
+<li><p>PT08.S2.NMHC.</p></li>
+</ul>
+</div>
+<div id="vif" class="section level3" number="4.2.2">
+<h3><span class="header-section-number">4.2.2</span> VIF</h3>
+<p>Compute the VIF for each predictor variable, which measures how much
+the variance of a coefficient estimate is inflated due to
+multicollinearity. A VIF above 5 or 10 is often considered indicative of
+problematic multicollinearity.</p>
+<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Multicollinearity assumption check - VIF</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>vif_vals <span class="ot">&lt;-</span> <span class="fu">vif</span>(model)</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(vif_vals)</span></code></pre></div>
+<pre><code>##        CO.GT.   PT08.S1.CO.      C6H6.GT. PT08.S2.NMHC.       NOx.GT. 
+##      5.254123      8.006075     39.050397     59.306147      5.496029 
+##  PT08.S3.NOx.       NO2.GT.  PT08.S4.NO2.   PT08.S5.O3.             T 
+##      4.871820      3.521260     11.416982      8.544669      6.025732 
+##            RH 
+##      4.107316</code></pre>
+<p>Even from the VIF score, we can notice multicollinearity on below two
+variables </p>
+<ul>
+<li><p>C6H6.GT.</p></li>
+<li><p>PT08.S2.NMHC.</p></li>
+</ul>
+<p>In this case, we can get rid of these two variables in the
+dataset. </p>
+</div>
+</div>
+</div>
+<div id="re-building-model" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> Re-building model</h1>
+<p>Now, let’s try to build a second model without those two
+variables.</p>
+<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Identify predictor variables with VIF &gt; 10</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>high_vif_vars <span class="ot">&lt;-</span> <span class="fu">names</span>(vif_vals[vif_vals <span class="sc">&gt;</span> <span class="dv">10</span>])</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove predictor variables with high VIF values</span></span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>reduced_formula <span class="ot">&lt;-</span> <span class="fu">as.formula</span>(<span class="fu">paste</span>(<span class="st">&quot;AH ~&quot;</span>, <span class="fu">paste</span>(<span class="fu">setdiff</span>(<span class="fu">names</span>(train_data[numeric_cols]),</span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>                                                          high_vif_vars), <span class="at">collapse =</span> <span class="st">&quot;+&quot;</span>)))</span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit a new multiple regression model with the reduced formula</span></span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>reduced_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(reduced_formula, <span class="at">data =</span> train_data)</span></code></pre></div>
+<pre><code>## Warning in model.matrix.default(mt, mf, contrasts): the response appeared on
+## the right-hand side and was dropped</code></pre>
+<pre><code>## Warning in model.matrix.default(mt, mf, contrasts): problem with term 9 in
+## model.matrix: no columns are assigned</code></pre>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the summary of the reduced model</span></span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(reduced_model)</span></code></pre></div>
+<pre><code>## 
+## Call:
+## lm(formula = reduced_formula, data = train_data)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.79297 -0.17634 -0.01577  0.18245  1.33593 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  -0.001058   0.004121  -0.257  0.79733    
+## CO.GT.        0.023528   0.008466   2.779  0.00547 ** 
+## PT08.S1.CO.  -0.097102   0.010616  -9.147  &lt; 2e-16 ***
+## NOx.GT.      -0.007381   0.008574  -0.861  0.38933    
+## PT08.S3.NOx. -0.107610   0.007561 -14.233  &lt; 2e-16 ***
+## NO2.GT.      -0.102237   0.007513 -13.607  &lt; 2e-16 ***
+## PT08.S5.O3.   0.056258   0.010947   5.139 2.84e-07 ***
+## T             1.080033   0.006139 175.931  &lt; 2e-16 ***
+## RH            0.784315   0.005887 133.226  &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.3335 on 6543 degrees of freedom
+## Multiple R-squared:  0.8885, Adjusted R-squared:  0.8884 
+## F-statistic:  6517 on 8 and 6543 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+<div id="conclusion" class="section level1" number="6">
+<h1><span class="header-section-number">6</span> Conclusion</h1>
+<p>Based on the evaluation metrics you provided, it seems that Model1
+with all predictor variables has a higher Multiple R-squared and
+Adjusted R-squared value (0.9044 and 0.9042) than Model2, which removed
+the multicollinearity attributes (0.8885 and 0.8884). This indicates
+that Model1 has a better predictive power and can explain a larger
+portion of the variance in the outcome variable.</p>
+<p>However, Model1 might suffer from multicollinearity, which can lead
+to unstable coefficient estimates, reduce the model’s interpretability,
+and increase the variance of the errors. Model2 attempts to address this
+issue by removing the multicollinearity attributes, but this has led to
+a reduction in the R-squared values.</p>
+<p>Other way of answering this question is to run an analysis of
+variance (ANOVA) test of the two models. It tests the null hypothesis
+(H0), where the variables that we removed previously have no
+significance, against the alternative hypothesis (H1) that those
+variables are significant.</p>
+<p>If the new model is an improvement of the original model, then we
+fail to reject H0. If that is not the case, it means that those
+variables were significant; hence we reject H0.</p>
+<div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(model, reduced_model)</span></code></pre></div>
+<pre><code>## Analysis of Variance Table
+## 
+## Model 1: AH ~ CO.GT. + PT08.S1.CO. + C6H6.GT. + PT08.S2.NMHC. + NOx.GT. + 
+##     PT08.S3.NOx. + NO2.GT. + PT08.S4.NO2. + PT08.S5.O3. + T + 
+##     RH
+## Model 2: AH ~ CO.GT. + PT08.S1.CO. + NOx.GT. + PT08.S3.NOx. + NO2.GT. + 
+##     PT08.S5.O3. + T + RH + AH
+##   Res.Df    RSS Df Sum of Sq      F    Pr(&gt;F)    
+## 1   6540 624.12                                  
+## 2   6543 727.88 -3   -103.76 362.42 &lt; 2.2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>From the ANOVA result, Model 1, which includes all predictor
+variables, with Model 2, which includes only the predictor variables
+with low VIF values and the outcome variable.</p>
+<p>In this case, the ANOVA table shows that Model 2 has a significantly
+lower residual sum of squares than Model 1 (i.e., the sum of squares due
+to the change in the model is significant), as indicated by the
+F-statistic and the p-value. This suggests that Model 2, which includes
+only the predictor variables with low VIF values and the outcome
+variable, is a better fit for the data than Model 1, which includes all
+predictor variables.</p>
+<p>However, the decision to choose between these two models depends on
+the specific research question and the context of the analysis. If the
+goal is to maximize the model’s predictive power and interpretability,
+Model1 might be a better choice, but if the goal is to reduce
+multicollinearity and simplify the model, Model2 might be a better
+choice.</p>
+<p>In any case, it’s important to evaluate the models using multiple
+metrics and consider other factors such as the domain knowledge and the
+research question when deciding which model to choose.</p>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
